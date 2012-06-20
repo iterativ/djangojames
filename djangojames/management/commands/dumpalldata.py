@@ -72,6 +72,7 @@ class Command(BaseCommand):
             f.close()
         elif os.path.exists(json_file):
             print '-------> Remove empty file (impossible to load) %s' % json_file
+            os.remove(json_file)
             
     def _dump_internal_apps(self, app_list):
         from django.db.models import get_models

@@ -28,6 +28,7 @@ from django.core import serializers
 from django.db.models import Model, ForeignKey, ManyToManyField, OneToOneField
 import json
 from django.db.models.loading import get_model
+import pprint
 
 FIXTUERS_EXT = '.json'
 
@@ -72,7 +73,7 @@ class JsonFixtures(object):
             models.extend(_get_models(f))
         
         for model in models:
-            for field in model[0]._meta.fields:
+            for field in model[0]._meta.fields + model[0]._meta.many_to_many:
                 if any([isinstance(field, OneToOneField), 
                         isinstance(field, ForeignKey),
                         isinstance(field, ManyToManyField)]): 
@@ -100,14 +101,20 @@ class JsonFixtures(object):
     def get_sorted(self):
         relns = self._get_relns()
         fixlist = self.get()
+        changes = True
+        i = len(fixlist) #avoid infinites loop
         
-        for fr, tos in relns.items():
-            fr_index = fixlist.index(fr)
-            for t in tos:
-                to_index = fixlist.index(t)
-                if to_index > fr_index:
-                    fixlist.remove(t)
-                    fixlist.insert(fr_index, t)
+        while changes and i >= 0:
+            i -= 1
+            changes = False
+            for fr, tos in relns.items():
+                fr_index = fixlist.index(fr)
+                for t in tos:
+                    to_index = fixlist.index(t)
+                    if to_index > fr_index:
+                        fixlist.remove(t)
+                        fixlist.insert(fr_index, t)
+                        changes = True
 
         return fixlist
                 
