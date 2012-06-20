@@ -40,7 +40,7 @@ class JsonFixtures(object):
         return os.path.splitext(os.path.basename(file_name))[0]
 
     def _get_relns(self):
-
+        
         def _get(model):
             for a in models:
                 if a[0] == model:
@@ -99,17 +99,17 @@ class JsonFixtures(object):
     
     def get_sorted(self):
         relns = self._get_relns()
+        fixlist = self.get()
         
-        def _compare(a, b):    
-            l = relns.get(a, None)
-            if l and b in l:
-                return 1
-            l = relns.get(b, None)
-            if l and a in l:
-                return -1
-            return 0 
-    
-        return sorted(self.get(), _compare)
+        for fr, tos in relns.items():
+            fr_index = fixlist.index(fr)
+            for t in tos:
+                to_index = fixlist.index(t)
+                if to_index > fr_index:
+                    fixlist.remove(t)
+                    fixlist.insert(fr_index, t)
+
+        return fixlist
                 
 class Command(NoArgsCommand):
     option_list = NoArgsCommand.option_list + (
