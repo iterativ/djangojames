@@ -213,13 +213,11 @@ class BaseSequenceStatistics(BaseStatistics):
 class BaseFractionStatistics(BaseStatistics):
     
     def _flatten(self, data):
-        if len(data) == 1:
-            
+        if data and len(data) == 1:            
             data = data[0]
             if isinstance(data, basestring):
                 if data == '(not set)':
                     data = _('(Unbekannt)')
-
             return data
         else:
             return data
