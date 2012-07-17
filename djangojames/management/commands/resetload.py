@@ -98,6 +98,9 @@ class JsonFixtures(object):
     def get(self):
         return [self._extract_fixture_name(f) for f in self.get_files()]
     
+    def get_folders(self):
+        return tuple(set([os.path.split(f)[0] for f in self.get_files()]))
+    
     def get_sorted(self):
         relns = self._get_relns()
         fixlist = self.get()
