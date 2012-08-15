@@ -30,15 +30,16 @@ register = template.Library()
 
 class IsActiveNode(template.Node):
     
-    def __init__(self, ref_url):
+    def __init__(self, ref_url, return_value):
         self.ref_url = ref_url
+        self.return_value = return_value
     def render(self, context): 
         current_path = context['request'].path
         if current_path == self.ref_url:
-            return 'active'
+            return self.return_value
         try:
             if current_path == reverse(self.ref_url):
-                return 'active' 
+                return self.return_value
         except:
             pass          
         return ''
@@ -47,11 +48,18 @@ class IsActiveNode(template.Node):
 def isactive(parser,token):
     try:
         # split_contents() knows not to split quoted strings.
-        tag_name, ref_url = token.split_contents()
+        tokens = token.split_contents()
+        tag_name, ref_url = tokens[0], tokens[1]
+        
+        if len(tokens) == 3:
+            return_value = tokens[2][1:-1]
+        else:
+            return_value = 'active'
+        
     except ValueError:
         raise template.TemplateSyntaxError("%r tag requires a single argument" % token.contents.split()[0])
     if not (ref_url[0] == ref_url[-1] and ref_url[0] in ('"', "'")):
         raise template.TemplateSyntaxError("%r tag's argument should be in quotes" % tag_name)
-    return IsActiveNode(ref_url[1:-1])
+    return IsActiveNode(ref_url[1:-1],return_value)
 
 register.tag('isactive', isactive)
