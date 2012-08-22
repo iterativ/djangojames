@@ -66,7 +66,9 @@ def reset_schema(database_config):
             os.remove(db_path)
         else:
             print "File does not exists: %s" % db_path
-            
+    
+    elif db_engine == 'postgis':
+        print "\nATTENTION: You have to drop and create the postgis 'DB' %s manually!\n" % database_config['NAME']      
     else:
         raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
     
