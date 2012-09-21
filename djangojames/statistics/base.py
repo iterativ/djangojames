@@ -294,7 +294,7 @@ class BaseGoogleAnalyticsStatistics(BaseFractionStatistics):
                     data_str = item[0][index]
                     item[0][index] = self.datetime_to_stamp(datetime.datetime(int(data_str[:4]),  int(data_str[4:6]), int(data_str[6:])))
         except Exception, e:
-            logger.exception('Could not get Google Analytics statistic')
+            logger.error('Could not get Google Analytics statistic: %s' % str(e))
             data = []
             
         return self.normalize(data, calc_percent, summerize)
