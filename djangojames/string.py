@@ -24,7 +24,7 @@ from django.utils.translation import ugettext as _
 import re
 import sys
 import unicodedata
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_unicode, smart_str
    
 def humanize_bool(a_bool):
     if a_bool:
@@ -33,11 +33,11 @@ def humanize_bool(a_bool):
         return _(u'Nein')
 
 def strip_empty_tags(value):
-    return re.sub(r"""(?im)<(?!\s*/)\s*[^>]*?>\s*<s*/\s*[^>]*?>""", '', force_unicode(value))
+    return re.sub(r"""(?im)<(?!\s*/)\s*[^>]*?>\s*<s*/\s*[^>]*?>""", '', smart_str(value))
     
 def strip_tags(value, taglist):
     tags = '|'.join(taglist)
-    return re.sub(r'<\s*(%(tags)s)\s*[^>]*?>|<\s*/\s*(%(tags)s)\s*[^>]*?>' % {'tags':tags}, '', force_unicode(value))
+    return re.sub(r'<\s*(%(tags)s)\s*[^>]*?>|<\s*/\s*(%(tags)s)\s*[^>]*?>' % {'tags':tags}, '', smart_str(value))
 
 CHAR_REPLACEMENT = {
     # latin-1 characters that don't have a unicode decomposition
