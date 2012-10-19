@@ -1,5 +1,7 @@
 <fieldset>
-{% for field in form %}
+{% for field in form.fields %}
+	{% with field.raw as field %}
 	{% include "bootstrap/field.html" %}
+	{% endwith %}
 {% endfor %}
 </fieldset>
