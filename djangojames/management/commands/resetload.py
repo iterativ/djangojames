@@ -73,11 +73,12 @@ class JsonFixtures(object):
             models.extend(_get_models(f))
         
         for model in models:
-            for field in model[0]._meta.fields + model[0]._meta.many_to_many:
-                if any([isinstance(field, OneToOneField), 
-                        isinstance(field, ForeignKey),
-                        isinstance(field, ManyToManyField)]): 
-                    _add(model, field.rel.to)
+            if model[0]:
+                for field in model[0]._meta.fields + model[0]._meta.many_to_many:
+                    if any([isinstance(field, OneToOneField), 
+                            isinstance(field, ForeignKey),
+                            isinstance(field, ManyToManyField)]): 
+                        _add(model, field.rel.to)
                         
         return relations
         
