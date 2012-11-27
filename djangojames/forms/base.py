@@ -175,7 +175,7 @@ class BaseModelForm(NiceForm, forms.ModelForm):
                 field.field.widget = Html5TimeInput()
             elif issubclass(type(field.field), forms.fields.DateTimeField):
                 field.field.widget = Html5DateTimeInput()
-                input_formats = ["%Y-%m-%dT%H:%M"]
+                input_formats = ["%Y-%m-%dT%H:%M", '%Y-%m-%dT%H:%M:%S']
                 for format in field.field.input_formats:
                     input_formats.append(format)
 
