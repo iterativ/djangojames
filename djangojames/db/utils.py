@@ -19,27 +19,37 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from django.core.management import call_command
+from django.core.management.commands import syncdb
 
 import os
-from subprocess import call
+from subprocess import call, check_output
 from random import choice
 from django.db.utils import IntegrityError
 from django.db.models.loading import get_app
 from django.db.models import get_models, EmailField
-
-TMP_DUMP_DB = '/tmp/dump.out'
 
 def _get_engine(database_config):
     return database_config['ENGINE'].split('.')[-1]
 
 def get_dumpdb_name(): 
     from django.conf import settings
-    return 'dump_%s.out' % os.path.split(settings.PROJECT_ROOT)[-1]
+    return 'dump_%s.sql' % os.path.split(settings.PROJECT_ROOT)[-1]
+
+def create_db_if_not_exists(database_config):
+    db_engine = _get_engine(database_config)
+    if db_engine in ['postgresql_psycopg2', 'postgresql']:
+        result = check_output(["psql", "-ltA", "-R=,"])
+        if not database_config['NAME'] in [line.split('|')[0] for line in result.split(',')]:
+            call(['createdb', database_config['NAME']])
+    elif db_engine == 'sqlite3':
+        pass
+    else:
+        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
 
 def reset_schema(database_config):
     from django.db import connection
     from django.db import transaction
-    from django.conf import settings
     
     db_engine = _get_engine(database_config)
     sql_list = None
@@ -71,7 +81,7 @@ def reset_schema(database_config):
         print "\nATTENTION: You have to drop and create the postgis 'DB' %s manually!\n" % database_config['NAME']      
     else:
         raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
-    
+
     cursor = connection.cursor()
     if sql_list and len(sql_list):
         for sql in sql_list:
@@ -85,9 +95,13 @@ def restore_db(database_config, backup_file):
     
     db_engine = _get_engine(database_config)
     database_config['FILE'] = backup_file
-    if db_engine in ['postgresql_psycopg2', 'postgresql']:    
-        database_config['tmp_dump'] = TMP_DUMP_DB
-        cmd = 'pg_restore -U %(USER)s -d %(NAME)s %(tmp_dump)s > /dev/null 2>&1'  % database_config
+    if db_engine in ['postgresql_psycopg2', 'postgresql']:
+
+        fileName, fileExtension = os.path.splitext(backup_file)
+        if fileExtension.lower() == '.sql':
+            cmd = 'psql -U %(USER)s -d %(NAME)s < %(FILE)s  > /dev/null 2>&1'  % database_config
+        else:
+            cmd = 'pg_restore -U %(USER)s -d %(NAME)s %(FILE)s  > /dev/null 2>&1'  % database_config
     elif db_engine == 'mysql':    
         cmd = 'mysql --user=%(USER)s --password=%(PASSWORD)s %(NAME)s < %(FILE)s' % database_config
     else:
@@ -99,8 +113,7 @@ def restore_db(database_config, backup_file):
 def dump_db(database_config, outputpath='/tmp/'):
     db_engine = _get_engine(database_config)
     database_config['OUTPUT_FILE'] = os.path.join(outputpath, get_dumpdb_name())
-    #from fabric.api import local
-    
+
     if db_engine in ['postgresql_psycopg2', 'postgresql']:     
         cmd = 'pg_dump -U postgres %(NAME)s > %(OUTPUT_FILE)s' % database_config
     elif db_engine == 'mysql':

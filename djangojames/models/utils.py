@@ -53,7 +53,7 @@ def natural_copy(from_object, to_model_instance, exclude=None, ignore_blank=Fals
 def unique_text(text, model_klass, field, exclude_fields_dict=None):
     
     kwargs = {'%s__istartswith' % field:text}
-    # conact queryset
+    # concat queryset
     qs = model_klass.objects.filter(**kwargs)
     if exclude_fields_dict:
         qs = qs.exclude(**exclude_fields_dict)

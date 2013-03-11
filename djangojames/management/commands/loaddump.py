@@ -24,6 +24,7 @@ from django.core.management.base import NoArgsCommand
 from optparse import make_option
 import os
 import time
+from djangojames.db.utils import create_db_if_not_exists
 
 LOCAL_PATH = '/tmp/'
 
@@ -34,24 +35,28 @@ class Command(NoArgsCommand):
 
     option_list = NoArgsCommand.option_list + (
         make_option('--keep_mails', action='store_true',
-            help='Keep original mail addresses (ATTENTION!!!!)'),              
+            help='Keep original mail addresses (ATTENTION!!!!)'),
+        make_option('--dump_path',
+                    help='The path of the dump, e.g. "/tmp/dump.sql".'),
     )
 
     def handle_noargs(self, **options):
+
         from django.conf import settings
         from django.db.utils import DEFAULT_DB_ALIAS
         self.keep_mails = options.get('keep_mails', False)
+        local_path = options.get('dump_path', None)
         db = options.get('database', DEFAULT_DB_ALIAS)    
         database_config = settings.DATABASES[db]
         from djangojames.db.utils import reset_schema, get_dumpdb_name, restore_db
-        from django.contrib.auth.models import User
-        
+
         start_time = time.time()
-        reset_schema(database_config)
-        
-        local_path =  os.path.join(LOCAL_PATH, get_dumpdb_name())
+        if not local_path:
+            local_path =  os.path.join(LOCAL_PATH, get_dumpdb_name())
         print 'Using dumpfile at %s' % local_path
-        
+
+        create_db_if_not_exists(database_config)
+        reset_schema(database_config)
         restore_db(database_config, local_path)
         
         print 'Finished in %d seconds' % (time.time() - start_time)
@@ -66,6 +71,7 @@ class Command(NoArgsCommand):
             print ''
         else:
             from django.core.management import call_command
+            from django.contrib.auth.models import User
             print 'Set fake emails <name>@%s-<domain> and fake passwords "%s"' % (self.domain_extension, self.fake_pw)
             
             call_command('fooemails', domain_extension=self.domain_extension)
