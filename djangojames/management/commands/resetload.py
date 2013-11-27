@@ -151,7 +151,7 @@ class Command(NoArgsCommand):
 
         # init db schema
         # the migrate-argument comes from south, if south is not used as app its silently ignored
-        call_command('syncdb', interactive=False, migrate=True)
+        call_command('syncdb', interactive=False, migrate_all=True)
 
         # Emit the post sync signal. This allows individual
         # applications to respond as if the database had been
