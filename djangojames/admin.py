@@ -23,8 +23,15 @@
 from django.template.defaultfilters import slugify
 from django.contrib import admin
 from djangojames.models.export import queryset_to_csv_response
+from django.http import HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
 
 def admin_export_as_csv(modeladmin, request, queryset):
     return queryset_to_csv_response(slugify(modeladmin.__class__.__name__), queryset)
 admin_export_as_csv.short_description = "Auswahl als CSV Exportieren"
 admin.site.add_action(admin_export_as_csv)
+
+@staff_member_required
+def raise_error(request):
+    raise Exception("Test Error: I know python!")
+    return HttpResponse('no error?')
