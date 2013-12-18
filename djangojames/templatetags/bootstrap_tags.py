@@ -49,7 +49,7 @@ def as_bootstrap(form):
     return template.render(c)
 
 @register.filter
-def as_bootstrap_field(field):
+def as_bootstrap_field(field, use_label=False):
     """
         Render a form bootstrap2 compatible
         
@@ -69,5 +69,5 @@ def as_bootstrap_field(field):
             </form>
     """
     template = get_template("bootstrap/field.html")
-    c = Context({"field": field})
+    c = Context({"field": field, "use_label": use_label})
     return template.render(c)

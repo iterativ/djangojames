@@ -2,8 +2,10 @@
     {{ field }}
 {% else %}
 	<div class="control-group {%if forloop.first %}first{% endif %}{% if field.errors  %} error{% endif %}" id="{{field.auto_id}}_container">
-		<label class="control-label {%if field.field.required %} required{% endif %}" for="id_{{ field.html_name }}">{{ field.label }}</label>  
-		<div class="controls">       
+        {% if not use_label %}
+        <label class="control-label {%if field.field.required %} required{% endif %}" for="id_{{ field.html_name }}">{{ field.label }}</label>
+        <div class="controls">
+        {% endif %}
 		{{ field }}	            	            
 		{% if field.errors  %}
 		    <div class="{{ field.auto_id }} help-inline">
@@ -17,6 +19,8 @@
 		{% if field.help_text %}
 			<p class="help-block">{{ field.help_text|safe}}</p>
 		{% endif %}
+        {% if not use_label %}
 		</div>
+        {% endif %}
 	</div>
 {% endif %}
