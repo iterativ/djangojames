@@ -86,7 +86,7 @@ def reset_schema(database_config):
     if sql_list and len(sql_list):
         for sql in sql_list:
             cursor.execute(sql)
-    transaction.commit_unless_managed()
+    transaction.commit()
             
 def restore_db(database_config, backup_file):
     
@@ -168,7 +168,7 @@ def foo_emails(domain_extension='foo'):
                                 email_cnt += 1
                         try:
                             model_instance.save()
-                            transaction.commit_unless_managed()
+                            transaction.commit_managed()
                         except IntegrityError, ie:
                             print '\nError while processing: ', model_instance
                             print ie

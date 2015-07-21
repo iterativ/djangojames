@@ -137,7 +137,6 @@ class Command(NoArgsCommand):
         from django.conf import settings
         from django.db import models
 
-        from django.core.management.sql import emit_post_sync_signal
         from django.db.utils import DEFAULT_DB_ALIAS
         from django.core.management import call_command
 
@@ -156,14 +155,15 @@ class Command(NoArgsCommand):
         # Emit the post sync signal. This allows individual
         # applications to respond as if the database had been
         # sync'd from scratch.
-        emit_post_sync_signal(models.get_models(), 0, 0, db)
+        #emit_post_sync_signal(models.get_models(), 0, 0, db)
 
         # get all fixtures
         jf = JsonFixtures(settings.PROJECT_ROOT)
         fixtures = jf.get_sorted()
 
-        sys.stdout.write("Load fixtures: %s\n" % " ".join(fixtures))
-        call_command('loaddata', *fixtures)
+        if len(fixtures) > 0:
+            sys.stdout.write("Load fixtures: %s\n" % " ".join(fixtures))
+            call_command('loaddata', *fixtures)
 
         if rebuild_haystack:
             call_command('rebuild_index', interactive=False)
