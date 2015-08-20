@@ -21,7 +21,7 @@
 #
 
 from django import forms
-from django.forms.util import ValidationError, ErrorList
+from django.forms.utils import ValidationError, ErrorList
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
