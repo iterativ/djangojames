@@ -168,7 +168,7 @@ def foo_emails(domain_extension='foo'):
                                 email_cnt += 1
                         try:
                             model_instance.save()
-                            transaction.commit_managed()
+                            transaction.commit()
                         except IntegrityError, ie:
                             print '\nError while processing: ', model_instance
                             print ie
