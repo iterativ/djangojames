@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from django.apps import apps
 from django.core.management import call_command
 from django.core.management.commands import syncdb
 
@@ -26,7 +27,6 @@ import os
 from subprocess import call, check_output
 from random import choice
 from django.db.utils import IntegrityError
-from django.db.models.loading import get_app
 from django.db.models import get_models, EmailField
 
 def _get_engine(database_config):
@@ -131,7 +131,6 @@ def get_random_text(length=10, allowed_chars='abcdefghijklmnopqrstuvwxyz'):
     return ''.join([choice(allowed_chars) for i in range(length)])
     
 def foo_emails(domain_extension='foo'):
-    
     def _get_foo_email(email):
         try:
             ll = email.split('@')
@@ -150,33 +149,39 @@ def foo_emails(domain_extension='foo'):
     email_cnt = 0
     # set fake emails for all EmailFields
     for app in settings.INSTALLED_APPS:
-        app = get_app(app_label(app), True)
-        if not app:
-            continue
-        
-        model_list = get_models(app)
-        for model in model_list:
-            field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
-            if len(field_names):
-                try:
-                    for model_instance in model.objects.all():
-                        for field_name in field_names:
-                            orig_email = getattr(model_instance, field_name)
-                            if orig_email:
-                                repl_email = _get_foo_email(orig_email)
-                                setattr(model_instance, field_name, repl_email)
-                                email_cnt += 1
-                        try:
-                            model_instance.save()
-                            transaction.commit_managed()
-                        except IntegrityError, ie:
-                            print '\nError while processing: ', model_instance
-                            print ie
-                            transaction.rollback_unless_managed()
-                except Exception, e:
-                    print '\nError while processing: ', model
-                    print e
-                    transaction.rollback_unless_managed()
+        try:
+            label = app_label(app)
+            app_model = apps.get_app_config(label).models_module
+            if not app_model:
+                continue
+
+            model_list = get_models(app_model)
+            for model in model_list:
+                field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
+                if len(field_names):
+                    try:
+                        for model_instance in model.objects.all():
+                            for field_name in field_names:
+                                orig_email = getattr(model_instance, field_name)
+                                if orig_email:
+                                    repl_email = _get_foo_email(orig_email)
+                                    setattr(model_instance, field_name, repl_email)
+                                    email_cnt += 1
+                            try:
+                                model_instance.save()
+                                transaction.commit()
+                            except IntegrityError, ie:
+                                print '\nError while processing: ', model_instance
+                                print ie
+                                transaction.rollback()
+                    except Exception, e:
+                        print '\nError while processing: ', model
+                        print e
+                        transaction.rollback()
+        except Exception as e:
+            print label
+            print app
+            print e
                         
     return email_cnt
 
