@@ -27,7 +27,7 @@ import os
 from subprocess import call, check_output
 from random import choice
 from django.db.utils import IntegrityError
-from django.db.models import get_models, EmailField
+from django.db.models import EmailField
 
 def _get_engine(database_config):
     return database_config['ENGINE'].split('.')[-1]
@@ -151,12 +151,12 @@ def foo_emails(domain_extension='foo'):
     for app in settings.INSTALLED_APPS:
         try:
             label = app_label(app)
-            app_model = apps.get_app_config(label).models_module
-            if not app_model:
+            app_config = apps.get_app_config(label)
+            if not app_config:
                 continue
 
-            model_list = get_models(app_model)
-            for model in model_list:
+            model_list = app_config.models
+            for key, model in model_list.items():
                 field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
                 if len(field_names):
                     try:
@@ -184,5 +184,3 @@ def foo_emails(domain_extension='foo'):
             print e
                         
     return email_cnt
-
-    
