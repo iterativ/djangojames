@@ -38,11 +38,11 @@ for scheme in INSTALL_SCHEMES.values():
 
 setup(
     name='djangojames',
-    version='0.4.13',
+    version='0.4.14',
     description="Helpers and tools for django",
     author='Marcel Eyer',
     author_email='me@maersu.ch',
-    url='https://github.com/atizo/djangojames',
+    url='https://github.com/iterativ/djangojames',
     packages=packages,
     data_files=data_files,
     zip_safe=False,
