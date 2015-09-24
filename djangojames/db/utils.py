@@ -144,6 +144,7 @@ def foo_emails(domain_extension='foo'):
     
     from django.conf import settings
     from django.db import transaction
+    from django.db import connection
     
     app_label = lambda app: app[app.rfind('.')+1:]
     
@@ -155,29 +156,50 @@ def foo_emails(domain_extension='foo'):
             continue
         
         model_list = get_models(app)
-        for model in model_list:
-            field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
-            if len(field_names):
-                try:
-                    for model_instance in model.objects.all():
-                        for field_name in field_names:
-                            orig_email = getattr(model_instance, field_name)
-                            if orig_email:
-                                repl_email = _get_foo_email(orig_email)
-                                setattr(model_instance, field_name, repl_email)
-                                email_cnt += 1
-                        try:
-                            model_instance.save()
-                            transaction.commit_unless_managed()
-                        except IntegrityError, ie:
-                            print '\nError while processing: ', model_instance
-                            print ie
-                            transaction.rollback_unless_managed()
-                except Exception, e:
-                    print '\nError while processing: ', model
-                    print e
-                    transaction.rollback_unless_managed()
+        if connection.vendor == 'postgresql':
+            email_cnt += fast_postgres_foo_emails(model_list)
+        else:
+            for model in model_list:
+                field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
+                if len(field_names):
+                    try:
+                        for model_instance in model.objects.all():
+                            for field_name in field_names:
+                                orig_email = getattr(model_instance, field_name)
+                                if orig_email:
+                                    repl_email = _get_foo_email(orig_email)
+                                    setattr(model_instance, field_name, repl_email)
+                                    email_cnt += 1
+                            try:
+                                model_instance.save()
+                                transaction.commit_unless_managed()
+                            except IntegrityError, ie:
+                                print '\nError while processing: ', model_instance
+                                print ie
+                                transaction.rollback_unless_managed()
+                    except Exception, e:
+                        print '\nError while processing: ', model
+                        print e
+                        transaction.rollback_unless_managed()
                         
     return email_cnt
+
+
+def fast_postgres_foo_emails(model_list):
+    from django.db import connection
+    email_cnt = 0
+
+    for model in model_list:
+        field_column_names = [f.db_column or f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
+
+        if len(field_column_names):
+            for column_name in field_column_names:
+                cursor = connection.cursor()
+                sql = u"UPDATE {0} SET {1} = regexp_replace({1}, '@(.*)', '@foo-\\1') WHERE {1} != ''".format(model._meta.db_table, column_name)
+                cursor.execute(sql)
+                email_cnt += cursor.rowcount
+
+    return email_cnt
+
 
     
