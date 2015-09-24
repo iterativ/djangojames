@@ -143,44 +143,77 @@ def foo_emails(domain_extension='foo'):
     
     from django.conf import settings
     from django.db import transaction
+    from django.db import connection
     
     app_label = lambda app: app[app.rfind('.')+1:]
     
     email_cnt = 0
     # set fake emails for all EmailFields
-    for app in settings.INSTALLED_APPS:
-        try:
-            label = app_label(app)
-            app_config = apps.get_app_config(label)
-            if not app_config:
-                continue
+    if connection.vendor == 'postgresql':
+        print('\nPosgtreSQL detected use fast_postgres_foo_emails')
+        email_cnt = fast_postgres_foo_emails(domain_extension)
+    else:
+        for app in settings.INSTALLED_APPS:
+            try:
+                label = app_label(app)
+                app_config = apps.get_app_config(label)
+                if not app_config:
+                    continue
 
-            model_list = app_config.models
-            for key, model in model_list.items():
-                field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
-                if len(field_names):
-                    try:
-                        for model_instance in model.objects.all():
-                            for field_name in field_names:
-                                orig_email = getattr(model_instance, field_name)
-                                if orig_email:
-                                    repl_email = _get_foo_email(orig_email)
-                                    setattr(model_instance, field_name, repl_email)
-                                    email_cnt += 1
-                            try:
-                                model_instance.save()
-                                transaction.commit()
-                            except IntegrityError, ie:
-                                print '\nError while processing: ', model_instance
-                                print ie
-                                transaction.rollback()
-                    except Exception, e:
-                        print '\nError while processing: ', model
-                        print e
-                        transaction.rollback()
-        except Exception as e:
-            print label
-            print app
-            print e
+                model_list = app_config.models
+                for key, model in model_list.items():
+                    field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
+                    if len(field_names):
+                        try:
+                            for model_instance in model.objects.all():
+                                for field_name in field_names:
+                                    orig_email = getattr(model_instance, field_name)
+                                    if orig_email:
+                                        repl_email = _get_foo_email(orig_email)
+                                        setattr(model_instance, field_name, repl_email)
+                                        email_cnt += 1
+                                try:
+                                    model_instance.save()
+                                    transaction.commit()
+                                except IntegrityError, ie:
+                                    print '\nError while processing: ', model_instance
+                                    print ie
+                                    transaction.rollback()
+                        except Exception, e:
+                            print '\nError while processing: ', model
+                            print e
+                            transaction.rollback()
+            except Exception as e:
+                print label
+                print app
+                print e
                         
+    return email_cnt
+
+def fast_postgres_foo_emails(domain_extension):
+    from django.db import connection
+    from django.conf import settings
+
+    email_cnt = 0
+    app_label = lambda app: app[app.rfind('.')+1:]
+
+    for app in settings.INSTALLED_APPS:
+        label = app_label(app)
+        app_config = apps.get_app_config(label)
+        if not app_config:
+            continue
+
+        model_list = app_config.models
+
+        for key, model in model_list.items():
+            field_column_names = [f.db_column or f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
+
+            if len(field_column_names):
+                for column_name in field_column_names:
+                    cursor = connection.cursor()
+                    sql = u"UPDATE {0} SET {1} = regexp_replace({1}, '@(.*)', '@{2}-\\1') WHERE {1} != ''".format(
+                        model._meta.db_table, column_name, domain_extension)
+                    cursor.execute(sql)
+                    email_cnt += cursor.rowcount
+
     return email_cnt
