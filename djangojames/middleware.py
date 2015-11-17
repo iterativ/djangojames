@@ -7,6 +7,10 @@
 #
 # Created on May 6, 2012
 # @author: maersu <me@maersu.ch>
+import collections
+from contextlib import contextmanager
+
+from django.contrib.auth import get_user_model
 
 try:
     from threading import local
@@ -26,3 +30,31 @@ def get_user():
 class ThreadLocalMiddleware(object):
     def process_request(self, request):
         _thread_locals.request = request
+
+
+DummyRequest = collections.namedtuple('DummyRequest', ['user'])
+
+@contextmanager
+def change_user(user=None, username=None):
+    """Temporarily change the current user
+
+    To be used as a context manager.
+
+    Supply either a user object or alternatively a username:
+    :param user: a user object
+    :param username: a string containing the username
+
+    Example:
+    >>> with change_user(username='nightly-import'):
+    ...     import_users()
+    """
+    old_request = get_request()
+    if not user:
+        User = get_user_model()
+        user = User.objects.get(username=username)
+    _thread_locals.request = DummyRequest(user)
+    yield user
+    if old_request:
+        _thread_locals.request = old_request
+    else:
+        del _thread_locals.request
