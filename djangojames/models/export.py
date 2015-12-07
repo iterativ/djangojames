@@ -19,12 +19,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from collections import OrderedDict
 
 from django.template.defaultfilters import slugify
 from django.http import HttpResponse
 import csv
 from django.utils.encoding import smart_str
-from django.utils.datastructures import SortedDict
 from django.db.models.fields.related import ForeignKey
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -35,7 +35,7 @@ def humanized_content_dict_for_model_instance(instance):
     """Returns a dictionary for the given Django model instance with normalized data."""
     model = instance.__class__
     opts = model._meta
-    data_map = SortedDict()
+    data_map = OrderedDict()
     suppress_object_id = False
     for f in opts.fields:
         k = f.name.replace('_', ' ').title()

@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from collections import OrderedDict
 from django.conf.urls.defaults import patterns, url
 import datetime
 from django.http import HttpResponse
@@ -27,7 +28,6 @@ import time
 from django.utils.functional import wraps
 from django.template.loader import render_to_string
 from django.db.models.aggregates import Count
-from django.utils.datastructures import SortedDict
 from googleanalytics import Connection
 from django.conf import settings
 from django.utils.translation import ugettext as _
@@ -122,7 +122,7 @@ class BaseStatistics(object):
                                  'label': name, 'options': options, 'selected': selected, 'modes': modes, 'type': type})
         
         config_lists=sorted(config_lists, key=lambda aconfig: aconfig['index'])
-        configs = SortedDict()        
+        configs = OrderedDict()
         for aconfig in config_lists:
             configs['%s_%s' % (aconfig['name'], self.prefix)] = aconfig
             
