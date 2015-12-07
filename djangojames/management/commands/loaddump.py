@@ -71,7 +71,8 @@ class Command(NoArgsCommand):
             print ''
         else:
             from django.core.management import call_command
-            from django.contrib.auth.models import User
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
             print 'Set fake emails <name>@%s-<domain> and fake passwords "%s"' % (self.domain_extension, self.fake_pw)
             
             call_command('fooemails', domain_extension=self.domain_extension)
