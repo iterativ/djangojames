@@ -196,6 +196,8 @@ def fast_postgres_foo_emails(domain_extension):
 
     email_cnt = 0
     app_label = lambda app: app[app.rfind('.')+1:]
+    
+    handled_columns = set()
 
     for app in settings.INSTALLED_APPS:
         label = app_label(app)
@@ -209,11 +211,15 @@ def fast_postgres_foo_emails(domain_extension):
             field_column_names = [f.db_column or f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
 
             if len(field_column_names):
+                db_table_name = model._meta.db_table
                 for column_name in field_column_names:
+                    if (column_name, db_table_name) in handled_columns:
+                        continue
                     cursor = connection.cursor()
                     sql = u"UPDATE {0} SET {1} = regexp_replace({1}, '@(.*)', '@{2}-\\1') WHERE {1} != ''".format(
-                        model._meta.db_table, column_name, domain_extension)
+                        db_table_name, column_name, domain_extension)
                     cursor.execute(sql)
+                    handled_columns.add((column_name, db_table_name))
                     email_cnt += cursor.rowcount
 
     return email_cnt
