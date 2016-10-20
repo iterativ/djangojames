@@ -21,7 +21,6 @@
 #
 from django.apps import apps
 from django.core.management import call_command
-from django.core.management.commands import syncdb
 
 import os
 from subprocess import call, check_output
@@ -32,7 +31,7 @@ from django.db.models import EmailField
 def _get_engine(database_config):
     return database_config['ENGINE'].split('.')[-1]
 
-def get_dumpdb_name(): 
+def get_dumpdb_name():
     from django.conf import settings
     return 'dump_%s.sql' % os.path.split(settings.PROJECT_ROOT)[-1]
 
@@ -50,10 +49,10 @@ def create_db_if_not_exists(database_config):
 def reset_schema(database_config):
     from django.db import connection
     from django.db import transaction
-    
+
     db_engine = _get_engine(database_config)
     sql_list = None
-    
+
     if db_engine in ['postgresql_psycopg2', 'postgresql']:
         sql_list = (
             'DROP  SCHEMA public CASCADE',
@@ -76,9 +75,9 @@ def reset_schema(database_config):
             os.remove(db_path)
         else:
             print "File does not exists: %s" % db_path
-    
+
     elif db_engine == 'postgis':
-        print "\nATTENTION: You have to drop and create the postgis 'DB' %s manually!\n" % database_config['NAME']      
+        print "\nATTENTION: You have to drop and create the postgis 'DB' %s manually!\n" % database_config['NAME']
     else:
         raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
 
@@ -87,12 +86,12 @@ def reset_schema(database_config):
         for sql in sql_list:
             cursor.execute(sql)
     transaction.commit()
-            
+
 def restore_db(database_config, backup_file):
-    
+
     if not (os.path.exists(backup_file) and os.path.isfile(backup_file)):
         raise Exception("Backup file '%s' doesn't exists" % backup_file)
-    
+
     db_engine = _get_engine(database_config)
     database_config['FILE'] = backup_file
     if db_engine in ['postgresql_psycopg2', 'postgresql']:
@@ -102,34 +101,34 @@ def restore_db(database_config, backup_file):
             cmd = 'psql -U %(USER)s -d %(NAME)s < %(FILE)s  > /dev/null 2>&1'  % database_config
         else:
             cmd = 'pg_restore -U %(USER)s -d %(NAME)s %(FILE)s  > /dev/null 2>&1'  % database_config
-    elif db_engine == 'mysql':    
+    elif db_engine == 'mysql':
         cmd = 'mysql --user=%(USER)s --password=%(PASSWORD)s %(NAME)s < %(FILE)s' % database_config
     else:
-        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine    
+        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
 
-    print cmd 
-    call(cmd, shell=True)    
+    print cmd
+    call(cmd, shell=True)
 
 def dump_db(database_config, outputpath='/tmp/'):
     db_engine = _get_engine(database_config)
     database_config['OUTPUT_FILE'] = os.path.join(outputpath, get_dumpdb_name())
 
-    if db_engine in ['postgresql_psycopg2', 'postgresql']:     
+    if db_engine in ['postgresql_psycopg2', 'postgresql']:
         cmd = 'pg_dump -U postgres %(NAME)s > %(OUTPUT_FILE)s' % database_config
     elif db_engine == 'mysql':
-        
+
         if database_config['HOST']:
             database_config['HOST'] = '--host %s' % database_config['HOST']
         cmd = '/usr/bin/mysqldump %(NAME)s %(HOST)s -u %(USER)s -p%(PASSWORD)s >  %(OUTPUT_FILE)s' % database_config
     else:
-        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine    
+        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
 
     print cmd
     call(cmd, shell=True)
-    
+
 def get_random_text(length=10, allowed_chars='abcdefghijklmnopqrstuvwxyz'):
     return ''.join([choice(allowed_chars) for i in range(length)])
-    
+
 def foo_emails(domain_extension='foo'):
     def _get_foo_email(email):
         try:
@@ -140,13 +139,13 @@ def foo_emails(domain_extension='foo'):
             new_mail = (fragment+'@'+domain_extension+'-'+fragment+'.ch').lower()
             print 'WARNING: Invalid Email found: "' + email +'" (-> '+ new_mail
             return new_mail
-    
+
     from django.conf import settings
     from django.db import transaction
     from django.db import connection
-    
+
     app_label = lambda app: app[app.rfind('.')+1:]
-    
+
     email_cnt = 0
     # set fake emails for all EmailFields
     if connection.vendor == 'postgresql':
@@ -187,7 +186,7 @@ def foo_emails(domain_extension='foo'):
                 print label
                 print app
                 print e
-                        
+
     return email_cnt
 
 def fast_postgres_foo_emails(domain_extension):
@@ -196,7 +195,7 @@ def fast_postgres_foo_emails(domain_extension):
 
     email_cnt = 0
     app_label = lambda app: app[app.rfind('.')+1:]
-    
+
     handled_columns = set()
 
     for app in settings.INSTALLED_APPS:
