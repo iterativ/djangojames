@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 from optparse import make_option
 import os
 import time
@@ -28,12 +28,12 @@ from djangojames.db.utils import create_db_if_not_exists
 
 LOCAL_PATH = '/tmp/'
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     fake_pw = 'test'
     domain_extension = 'fake'    
     help = 'Drops local database, loads database dump and set fake emails/usernames <name>"'+domain_extension+'"<domain> and fake passwords "'+fake_pw+'"'
 
-    option_list = NoArgsCommand.option_list + (
+    option_list = BaseCommand.option_list + (
         make_option('--keep_mails', action='store_true',
             help='Keep original mail addresses (ATTENTION!!!!)'),
         make_option('--dump_path',
