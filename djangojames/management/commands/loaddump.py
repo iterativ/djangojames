@@ -39,7 +39,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--keep_mails',
             action='store_true',
-            dest='delete',
+            dest='keep_mails',
             default=False,
             help='Keep original mail addresses (ATTENTION!!!!)',
         )
@@ -47,7 +47,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--dump_path',
             action='store_true',
-            dest='delete',
+            dest='dump_path',
             default=None,
             help='The path of the dump, e.g. "/tmp/dump.sql".',
         )
