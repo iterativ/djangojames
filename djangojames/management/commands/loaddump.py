@@ -25,6 +25,8 @@ from optparse import make_option
 import os
 import time
 from djangojames.db.utils import create_db_if_not_exists
+from django.conf import settings
+from django.db.utils import DEFAULT_DB_ALIAS
 
 LOCAL_PATH = '/tmp/'
 
@@ -33,17 +35,25 @@ class Command(BaseCommand):
     domain_extension = 'fake'    
     help = 'Drops local database, loads database dump and set fake emails/usernames <name>"'+domain_extension+'"<domain> and fake passwords "'+fake_pw+'"'
 
-    option_list = BaseCommand.option_list + (
-        make_option('--keep_mails', action='store_true',
-            help='Keep original mail addresses (ATTENTION!!!!)'),
-        make_option('--dump_path',
-                    help='The path of the dump, e.g. "/tmp/dump.sql".'),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--keep_mails',
+            action='store_true',
+            dest='delete',
+            default=False,
+            help='Keep original mail addresses (ATTENTION!!!!)',
+        )
 
-    def handle_noargs(self, **options):
+        parser.add_argument(
+            '--dump_path',
+            action='store_true',
+            dest='delete',
+            default=False,
+            help='The path of the dump, e.g. "/tmp/dump.sql".',
+        )
 
-        from django.conf import settings
-        from django.db.utils import DEFAULT_DB_ALIAS
+
+    def handle(self, *args, **options):
         self.keep_mails = options.get('keep_mails', False)
         local_path = options.get('dump_path', None)
         db = options.get('database', DEFAULT_DB_ALIAS)    
@@ -61,8 +71,8 @@ class Command(BaseCommand):
         
         print 'Finished in %d seconds' % (time.time() - start_time)
         start_time = time.time()
-        
-        if self.keep_mails:
+
+        if options['keep_mails']:
             warning = '@ ATTENTION: THE EMAIL ADDRESSES WILL NOT BE CHANGED! DO NOT SEND ANY MAIL FROM THE PLATFORM !!! @'
             print ''
             print '@'*len(warning)
