@@ -48,14 +48,12 @@ class Command(BaseCommand):
             '--dump_path',
             action='store_true',
             dest='delete',
-            default=False,
+            default=None,
             help='The path of the dump, e.g. "/tmp/dump.sql".',
         )
 
-
     def handle(self, *args, **options):
-        self.keep_mails = options.get('keep_mails', False)
-        local_path = options.get('dump_path', None)
+        local_path = options['dump_path']
         db = options.get('database', DEFAULT_DB_ALIAS)    
         database_config = settings.DATABASES[db]
         from djangojames.db.utils import reset_schema, get_dumpdb_name, restore_db
@@ -63,27 +61,27 @@ class Command(BaseCommand):
         start_time = time.time()
         if not local_path:
             local_path =  os.path.join(LOCAL_PATH, get_dumpdb_name())
-        print 'Using dumpfile at %s' % local_path
+        print('Using dumpfile at %s' % local_path)
 
         create_db_if_not_exists(database_config)
         reset_schema(database_config)
         restore_db(database_config, local_path)
         
-        print 'Finished in %d seconds' % (time.time() - start_time)
+        print('Finished in %d seconds' % (time.time() - start_time))
         start_time = time.time()
 
         if options['keep_mails']:
             warning = '@ ATTENTION: THE EMAIL ADDRESSES WILL NOT BE CHANGED! DO NOT SEND ANY MAIL FROM THE PLATFORM !!! @'
-            print ''
-            print '@'*len(warning)
-            print warning
-            print '@'*len(warning)
-            print ''
+            print('')
+            print('@'*len(warning))
+            print(warning)
+            print('@'*len(warning))
+            print('')
         else:
             from django.core.management import call_command
             from django.contrib.auth import get_user_model
             User = get_user_model()
-            print 'Set fake emails <name>@%s-<domain> and fake passwords "%s"' % (self.domain_extension, self.fake_pw)
+            print('Set fake emails <name>@%s-<domain> and fake passwords "%s"' % (self.domain_extension, self.fake_pw))
             
             call_command('fooemails', domain_extension=self.domain_extension)
 
@@ -91,5 +89,5 @@ class Command(BaseCommand):
             user.set_password(self.fake_pw)
             count = User.objects.all().update(password=user.password)
     
-            print 'Reset %d passwords' % count
-            print 'Finished in %d seconds' % (time.time() - start_time)
+            print('Reset %d passwords' % count)
+            print('Finished in %d seconds' % (time.time() - start_time))
