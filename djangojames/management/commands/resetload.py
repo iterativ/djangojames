@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 import os
 import sys
 from djangojames.db.utils import reset_schema
@@ -27,7 +27,7 @@ from optparse import make_option
 from django.core import serializers
 from django.db.models import Model, ForeignKey, ManyToManyField, OneToOneField
 import json
-from django.db.models.loading import get_model
+from django.apps import get_model
 import pprint
 
 FIXTUERS_EXT = '.json'
@@ -106,7 +106,7 @@ class JsonFixtures(object):
         relns = self._get_relns()
         fixlist = self.get()
         changes = True
-        i = len(fixlist) #avoid infinites loop
+        i = len(fixlist)  # avoid infinites loop
 
         while changes and i >= 0:
             i -= 1
@@ -123,17 +123,20 @@ class JsonFixtures(object):
         return fixlist
 
 
-class Command(NoArgsCommand):
-    option_list = NoArgsCommand.option_list + (
-        make_option('-i', '--ignore_reset', action='store_true', dest='ignore_reset',
-                    help='Do not extecute the reset command (equivalent to syncdb)'),
-        make_option('-y', '--rebuild_haystack', action='store_true', dest='rebuild_haystack',
-                    help='call haystack rebuild_index command'),
-    )
+class Command(BaseCommand):
     help = "Drops and recreates database (from jsons)."
 
+    def add_arguments(self, parser):
 
-    def handle_noargs(self, **options):
+        parser.add_argument('-i', '--ignore_reset', action='store_true', dest='ignore_reset',
+                            help='Do not extecute the reset command (equivalent to syncdb)')
+
+        parser.add_argument('-y', '--rebuild_haystack',
+                            action='store_true',
+                            dest='rebuild_haystack',
+                            help='call haystack rebuild_index command'),
+
+    def handle(self, **options):
         from django.conf import settings
         from django.db import models
 
@@ -155,7 +158,7 @@ class Command(NoArgsCommand):
         # Emit the post sync signal. This allows individual
         # applications to respond as if the database had been
         # sync'd from scratch.
-        #emit_post_sync_signal(models.get_models(), 0, 0, db)
+        # emit_post_sync_signal(models.get_models(), 0, 0, db)
 
         # get all fixtures
         jf = JsonFixtures(settings.PROJECT_ROOT)
@@ -167,4 +170,3 @@ class Command(NoArgsCommand):
 
         if rebuild_haystack:
             call_command('rebuild_index', interactive=False)
-        

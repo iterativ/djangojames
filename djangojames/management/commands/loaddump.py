@@ -21,18 +21,19 @@
 #
 
 from django.core.management.base import BaseCommand
-from optparse import make_option
+
 import os
 import time
 from djangojames.db.utils import create_db_if_not_exists
 from django.conf import settings
 from django.db.utils import DEFAULT_DB_ALIAS
+from djangojames.db.utils import reset_schema, get_dumpdb_name, restore_db
 
 LOCAL_PATH = '/tmp/'
 
 class Command(BaseCommand):
     fake_pw = 'test'
-    domain_extension = 'fake'    
+    domain_extension = 'fake'
     help = 'Drops local database, loads database dump and set fake emails/usernames <name>"'+domain_extension+'"<domain> and fake passwords "'+fake_pw+'"'
 
     def add_arguments(self, parser):
@@ -46,7 +47,7 @@ class Command(BaseCommand):
 
         parser.add_argument(
             '--dump_path',
-            action='store_true',
+            action='store',
             dest='dump_path',
             default=None,
             help='The path of the dump, e.g. "/tmp/dump.sql".',
@@ -54,9 +55,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         local_path = options['dump_path']
-        db = options.get('database', DEFAULT_DB_ALIAS)    
+
+        db = options.get('database', DEFAULT_DB_ALIAS)
         database_config = settings.DATABASES[db]
-        from djangojames.db.utils import reset_schema, get_dumpdb_name, restore_db
 
         start_time = time.time()
         if not local_path:
@@ -66,7 +67,7 @@ class Command(BaseCommand):
         create_db_if_not_exists(database_config)
         reset_schema(database_config)
         restore_db(database_config, local_path)
-        
+
         print('Finished in %d seconds' % (time.time() - start_time))
         start_time = time.time()
 
@@ -82,12 +83,12 @@ class Command(BaseCommand):
             from django.contrib.auth import get_user_model
             User = get_user_model()
             print('Set fake emails <name>@%s-<domain> and fake passwords "%s"' % (self.domain_extension, self.fake_pw))
-            
+
             call_command('fooemails', domain_extension=self.domain_extension)
 
             user = User()
             user.set_password(self.fake_pw)
             count = User.objects.all().update(password=user.password)
-    
+
             print('Reset %d passwords' % count)
             print('Finished in %d seconds' % (time.time() - start_time))

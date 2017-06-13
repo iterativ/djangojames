@@ -20,20 +20,23 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from django.core.management.base import NoArgsCommand
-from optparse import make_option
+from django.core.management.base import BaseCommand
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = "prepend a snippet to every email"
     flag = __name__
 
-    option_list = NoArgsCommand.option_list + (
-        make_option('--domain_extension',
-            help='a text snippet to prepend to the existing domains'),  
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--domain_extension',
+            action='store',
+            dest='domain_extension',
+            default=False,
+            help='a text snippet to prepend to the existing domains',
+        )
 
-    def handle_noargs(self, **options): 
+    def handle(self, **options):
         from djangojames.db.utils import foo_emails
         domain_extension = options.get('domain_extension', 'foo') 
         
@@ -41,4 +44,4 @@ class Command(NoArgsCommand):
             domain_extension = 'foo'
         
         email_cnt = foo_emails(domain_extension)
-        print 'Foo %d emails' % email_cnt
+        print('Foo %d emails' % email_cnt)

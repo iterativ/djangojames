@@ -19,21 +19,25 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from django.core.management.base import BaseCommand
 
-from django.core.management.base import NoArgsCommand
-from optparse import make_option
 from djangojames.db.utils import dump_db
 
-class Command(NoArgsCommand):
+
+class Command(BaseCommand):
     help = "Dumps the project db"
     flag = __name__
 
-    option_list = NoArgsCommand.option_list + (
-        make_option('--outputpath',
-            help='a directory to write the dump to'),  
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--outputpath',
+            action='store',
+            dest='outputpath',
+            default=None,
+            help='a directory to write the dump to',
+        )
 
-    def handle_noargs(self, **options): 
+    def handle(self, **options):
         from django.db.utils import DEFAULT_DB_ALIAS
         from django.conf import settings
         
