@@ -28,8 +28,16 @@ def get_user():
         return getattr(request, "user", None)
 
 class ThreadLocalMiddleware(object):
+    # clean up _thread_locals after the request: https://stackoverflow.com/a/3227515/669561
     def process_request(self, request):
         _thread_locals.request = request
+
+    def process_response(self, request, response):
+        _thread_locals.request = None
+        return response
+
+    def process_exception(self, request, exception):
+        _thread_locals.request = None
 
 
 DummyRequest = collections.namedtuple('DummyRequest', ['user'])
