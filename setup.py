@@ -38,7 +38,7 @@ for scheme in INSTALL_SCHEMES.values():
 
 setup(
     name='djangojames',
-    version='0.5.1',
+    version='0.5.2',
     description="Helpers and tools for django",
     author='Marcel Eyer',
     author_email='me@maersu.ch',
@@ -48,5 +48,5 @@ setup(
     zip_safe=False,
     install_requires=[
         'python-googleanalytics==1.0.2',
-    ],    
+    ],
 )
