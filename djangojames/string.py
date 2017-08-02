@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
+from __future__ import unicode_literals
 from django.utils.translation import ugettext as _
 import re
 import sys
@@ -28,9 +28,9 @@ from django.utils.encoding import force_unicode, smart_str
    
 def humanize_bool(a_bool):
     if a_bool:
-        return _(u'Ja')
+        return _('Ja')
     else:
-        return _(u'Nein')
+        return _('Nein')
 
 def strip_empty_tags(value):
     return re.sub(r"""(?im)<(?!\s*/)\s*[^>]*?>\s*<s*/\s*[^>]*?>""", '', smart_str(value))

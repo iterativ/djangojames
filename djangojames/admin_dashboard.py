@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
+from __future__ import unicode_literals
 from admin_tools.dashboard import modules, modules, Dashboard, AppIndexDashboard
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -42,12 +42,12 @@ class CustomIndexDashboard(Dashboard):
 
         # append an app list module for "Applications"
         self.children.append(modules.AppList(
-            title= _(u'Applikationen'),
+            title= _('Applikationen'),
         ))
 
         # append a recent actions module
         self.children.append(modules.RecentActions(
-            title= _(u'Letzte Aktionen'),
+            title= _('Letzte Aktionen'),
             limit=5,
         ))
 
@@ -56,17 +56,17 @@ class CustomIndexDashboard(Dashboard):
         except:
             main_page = '/'
 
-        cildren = [{'title': _(u'Hauptseite'),
+        cildren = [{'title': _('Hauptseite'),
                     'url': main_page},
-                    {'title': _(u'Passwort wechseln'),
+                    {'title': _('Passwort wechseln'),
                      'url': reverse('admin:password_change')},
                 ]
         
         if 'rosetta' in settings.INSTALLED_APPS:
-            cildren.append({'title': _(u'Übersetzen'),
+            cildren.append({'title': _('Übersetzen'),
                              'url': reverse('rosetta-home')})
              
-        cildren.append({'title': _(u'Django Dokumentation'),
+        cildren.append({'title': _('Django Dokumentation'),
                     'url': 'https://docs.djangoproject.com/'})
 
         # append a link list module for "quick links"
@@ -92,7 +92,7 @@ class CustomIndexDashboard(Dashboard):
                 children.append(sm)
 
             self.children.append(modules.Group(
-                title=_(u'Statistiken'),
+                title=_('Statistiken'),
                 display="tabs",
                 children=children
             ))
@@ -129,7 +129,7 @@ def get_statistics_modules():
     return mods
 
 class StatisticsModule(modules.LinkList):
-    title = _(u'Statistiken')
+    title = _('Statistiken')
     template  = 'djangojames/statistics_module.html'
 
     def init_with_context(self, context):
