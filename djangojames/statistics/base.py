@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from __future__ import unicode_literals
 from django.conf.urls.defaults import patterns, url
 import datetime
 from django.http import HttpResponse
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 class BaseStatistics(object):
     
-    name = _(u'Statistiken')
+    name = _('Statistiken')
     render_template = 'djangojames/statistics.html'
     default_options = {}
 
@@ -144,7 +145,7 @@ def apply_days_range(days):
                 kwargs['from_date'] = from_date
                 kwargs['to_date'] = to_date   
                 data = view_func(instance, request, *args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 logger.exception('Error: Could not get statistic')
                 data = []
             return HttpResponse(simplejson.dumps(data), mimetype='application/javascript')
@@ -293,7 +294,7 @@ class BaseGoogleAnalyticsStatistics(BaseFractionStatistics):
                 for item in data:
                     data_str = item[0][index]
                     item[0][index] = self.datetime_to_stamp(datetime.datetime(int(data_str[:4]),  int(data_str[4:6]), int(data_str[6:])))
-        except Exception, e:
+        except Exception as e:
             logger.error('Could not get Google Analytics statistic: %s' % str(e))
             data = []
             
@@ -317,12 +318,12 @@ class BaseGoogleAnalyticsStatistics(BaseFractionStatistics):
 class VisitorsStatistics(BaseSequenceStatistics, 
                           BaseGoogleAnalyticsStatistics):
     
-    name = _(u'Besucher')
+    name = _('Besucher')
     
     @apply_days_range(days=120)
     def stats_visitor(self, request, from_date, to_date):
         return self._get_visitor(from_date, to_date)
-    stats_visitor.name = _(u'Eindeutige Besucher')
+    stats_visitor.name = _('Eindeutige Besucher')
     stats_visitor.index = 20
     stats_visitor.options = {'xAxis': { 'type': 'datetime'}}
     stats_visitor.type = {'name': 'line', 'unity': 'datetime'}  
@@ -331,27 +332,27 @@ class VisitorsStatistics(BaseSequenceStatistics,
     @apply_days_range(days=500)
     def stats_country(self, request, from_date, to_date):
         return self._get_country(from_date, to_date)
-    stats_country.name = _(u'Herkunftsland')
+    stats_country.name = _('Herkunftsland')
     stats_country.index = 30
     stats_country.type = {'name': 'pie', 'unity': 'percent'}
     
     @apply_days_range(days=500)
     def stats_browser(self, request, from_date, to_date):
         return self._get_browser(from_date, to_date)
-    stats_browser.name = _(u'Browser')
+    stats_browser.name = _('Browser')
     stats_browser.index = 40
     stats_browser.type = {'name': 'pie', 'unity': 'percent'}
 
     @apply_days_range(days=500)
     def stats_os(self, request, from_date, to_date):
         return self._get_operatingsystem(from_date, to_date)
-    stats_os.name = _(u'Betriebssystem')
+    stats_os.name = _('Betriebssystem')
     stats_os.index = 50
     stats_os.type = {'name': 'pie', 'unity': 'percent'}
     
     @apply_days_range(days=500)
     def stats_visitortype(self, request, from_date, to_date):
         return self._get_visitortype(from_date, to_date)
-    stats_visitortype.name = _(u'Neu und wiederkehrend')
+    stats_visitortype.name = _('Neu und wiederkehrend')
     stats_visitortype.index = 50
     stats_visitortype.type = {'name': 'pie', 'unity': 'percent'}

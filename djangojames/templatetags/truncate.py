@@ -21,7 +21,7 @@
 #
 # Created on Mar 2, 2012
 # @author: github.com/maersu
-
+from __future__ import unicode_literals
 from django.template import Library
 from django.utils.encoding import force_unicode
 from django.utils.functional import allow_lazy
@@ -41,7 +41,7 @@ def truncate_string(s, num):
             words = re.split(' *', s[:length])
             if len(words) > 1:
                 del words[-1]
-            s = u' '.join(words)
+            s = ' '.join(words)
         s += ' ...'
             
     return s

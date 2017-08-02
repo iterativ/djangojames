@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
+from __future__ import unicode_literals
 from django.forms.util import flatatt
 from django.forms.widgets import Select
 from django.utils.safestring import mark_safe
@@ -37,16 +37,16 @@ class InputLabelWidget(Select):
         if label:
             del final_attrs['label']
         
-        output = [u'<select%s>' % flatatt(final_attrs)]
+        output = ['<select%s>' % flatatt(final_attrs)]
         if label:            
             output.append(self.render_option([], '', '- %s -' % label))
         
         options = self.render_options(choices, [value])
         if options:
             output.append(options)
-        output.append(u'</select>')
+        output.append('</select>')
 
-        return mark_safe(u'\n'.join(output))
+        return mark_safe('\n'.join(output))
 
 class LabelCharField(forms.CharField):
     widget = InputLabelWidget
@@ -57,7 +57,7 @@ class LabelCharField(forms.CharField):
     
     def widget_attrs(self, widget):
         if self.label:
-            return {'label': u'%s' % self.label}
+            return {'label': '%s' % self.label}
         return {}    
     
 class LabelIntegerField(forms.IntegerField):
@@ -69,5 +69,5 @@ class LabelIntegerField(forms.IntegerField):
     
     def widget_attrs(self, widget):
         if self.label:
-            return {'label': u'%s' % self.label}
+            return {'label': '%s' % self.label}
         return {}
