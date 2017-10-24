@@ -19,9 +19,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from __future__ import unicode_literals
 from django.apps import apps
-from django.core.management import call_command
-from django.core.management.commands import syncdb
 
 import os
 from subprocess import call, check_output
@@ -45,7 +44,7 @@ def create_db_if_not_exists(database_config):
     elif db_engine == 'sqlite3':
         pass
     else:
-        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
+        raise NotImplementedError("This database backend is not yet supported: %s" % db_engine)
 
 def reset_schema(database_config):
     from django.db import connection
@@ -72,15 +71,15 @@ def reset_schema(database_config):
     elif db_engine == 'sqlite3':
         db_path = database_config['NAME']
         if os.path.exists(db_path):
-            print "Remove sqlite3 db file: %s" % db_path
+            print("Remove sqlite3 db file: %s" % db_path)
             os.remove(db_path)
         else:
-            print "File does not exists: %s" % db_path
+            print("File does not exists: %s" % db_path)
     
     elif db_engine == 'postgis':
-        print "\nATTENTION: You have to drop and create the postgis 'DB' %s manually!\n" % database_config['NAME']      
+        print("\nATTENTION: You have to drop and create the postgis 'DB' %s manually!\n" % database_config['NAME'])
     else:
-        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine
+        raise NotImplementedError("This database backend is not yet supported: %s" % db_engine)
 
     cursor = connection.cursor()
     if sql_list and len(sql_list):
@@ -105,9 +104,9 @@ def restore_db(database_config, backup_file):
     elif db_engine == 'mysql':    
         cmd = 'mysql --user=%(USER)s --password=%(PASSWORD)s %(NAME)s < %(FILE)s' % database_config
     else:
-        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine    
+        raise NotImplementedError("This database backend is not yet supported: %s" % db_engine)
 
-    print cmd 
+    print(cmd)
     call(cmd, shell=True)    
 
 def dump_db(database_config, outputpath='/tmp/'):
@@ -122,9 +121,9 @@ def dump_db(database_config, outputpath='/tmp/'):
             database_config['HOST'] = '--host %s' % database_config['HOST']
         cmd = '/usr/bin/mysqldump %(NAME)s %(HOST)s -u %(USER)s -p%(PASSWORD)s >  %(OUTPUT_FILE)s' % database_config
     else:
-        raise NotImplementedError, "This database backend is not yet supported: %s" % db_engine    
+        raise NotImplementedError("This database backend is not yet supported: %s" % db_engine)
 
-    print cmd
+    print(cmd)
     call(cmd, shell=True)
     
 def get_random_text(length=10, allowed_chars='abcdefghijklmnopqrstuvwxyz'):
@@ -138,7 +137,7 @@ def foo_emails(domain_extension='foo'):
         except:
             fragment = get_random_text()
             new_mail = (fragment+'@'+domain_extension+'-'+fragment+'.ch').lower()
-            print 'WARNING: Invalid Email found: "' + email +'" (-> '+ new_mail
+            print('WARNING: Invalid Email found: "' + email +'" (-> '+ new_mail)
             return new_mail
     
     from django.conf import settings
@@ -175,18 +174,18 @@ def foo_emails(domain_extension='foo'):
                                 try:
                                     model_instance.save()
                                     transaction.commit()
-                                except IntegrityError, ie:
-                                    print '\nError while processing: ', model_instance
-                                    print ie
+                                except IntegrityError as ie:
+                                    print('\nError while processing: ', model_instance)
+                                    print(ie)
                                     transaction.rollback()
-                        except Exception, e:
-                            print '\nError while processing: ', model
-                            print e
+                        except Exception as e:
+                            print('\nError while processing: ', model)
+                            print(e)
                             transaction.rollback()
             except Exception as e:
-                print label
-                print app
-                print e
+                print(label)
+                print(app)
+                print(e)
                         
     return email_cnt
 
