@@ -20,10 +20,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from django.core.management.base import NoArgsCommand
-from optparse import make_option
 import os
 import time
+from django.core.management.base import NoArgsCommand
+from optparse import make_option
+
 from djangojames.db.utils import create_db_if_not_exists
 
 LOCAL_PATH = '/tmp/'
@@ -53,26 +54,26 @@ class Command(NoArgsCommand):
         start_time = time.time()
         if not local_path:
             local_path =  os.path.join(LOCAL_PATH, get_dumpdb_name())
-        print 'Using dumpfile at %s' % local_path
+        print('Using dumpfile at %s' % local_path)
 
         create_db_if_not_exists(database_config)
         reset_schema(database_config)
         restore_db(database_config, local_path)
         
-        print 'Finished in %d seconds' % (time.time() - start_time)
+        print('Finished in %d seconds' % (time.time() - start_time))
         start_time = time.time()
         
         if self.keep_mails:
             warning = '@ ATTENTION: THE EMAIL ADDRESSES WILL NOT BE CHANGED! DO NOT SEND ANY MAIL FROM THE PLATFORM !!! @'
-            print ''
-            print '@'*len(warning)
-            print warning
-            print '@'*len(warning)
-            print ''
+            print('')
+            print('@'*len(warning))
+            print(warning)
+            print('@'*len(warning))
+            print('')
         else:
             from django.core.management import call_command
             from django.contrib.auth.models import User
-            print 'Set fake emails <name>@%s-<domain> and fake passwords "%s"' % (self.domain_extension, self.fake_pw)
+            print('Set fake emails <name>@%s-<domain> and fake passwords "%s"' % (self.domain_extension, self.fake_pw))
             
             call_command('fooemails', domain_extension=self.domain_extension)
 
@@ -80,5 +81,5 @@ class Command(NoArgsCommand):
             user.set_password(self.fake_pw)
             count = User.objects.all().update(password=user.password)
     
-            print 'Reset %d passwords' % count
-            print 'Finished in %d seconds' % (time.time() - start_time)
+            print('Reset %d passwords' % count)
+            print('Finished in %d seconds' % (time.time() - start_time))
