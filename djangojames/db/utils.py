@@ -38,7 +38,7 @@ def get_dumpdb_name():
 def create_db_if_not_exists(database_config):
     db_engine = _get_engine(database_config)
     if db_engine in ['postgresql_psycopg2', 'postgresql']:
-        result = check_output(["psql", "-ltA", "-R=,"])
+        result = str(check_output(["psql", "-ltA", "-R=,"]))
         if not database_config['NAME'] in [line.split('|')[0] for line in result.split(',')]:
             call(['createdb', database_config['NAME']])
     elif db_engine == 'sqlite3':
