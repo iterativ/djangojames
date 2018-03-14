@@ -20,18 +20,19 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 from __future__ import unicode_literals
-from django.apps import apps
 
 import os
-from subprocess import call, check_output
-from random import choice
-from django.db.utils import IntegrityError
+from django.apps import apps
 from django.db.models import EmailField
+from django.db.utils import IntegrityError
+from random import choice
+from subprocess import call, check_output
+
 
 def _get_engine(database_config):
     return database_config['ENGINE'].split('.')[-1]
 
-def get_dumpdb_name(): 
+def get_dumpdb_name():
     from django.conf import settings
     return 'dump_%s.sql' % os.path.split(settings.PROJECT_ROOT)[-1]
 
@@ -49,10 +50,10 @@ def create_db_if_not_exists(database_config):
 def reset_schema(database_config):
     from django.db import connection
     from django.db import transaction
-    
+
     db_engine = _get_engine(database_config)
     sql_list = None
-    
+
     if db_engine in ['postgresql_psycopg2', 'postgresql']:
         sql_list = (
             'DROP  SCHEMA public CASCADE',
@@ -75,7 +76,7 @@ def reset_schema(database_config):
             os.remove(db_path)
         else:
             print("File does not exists: %s" % db_path)
-    
+
     elif db_engine == 'postgis':
         print("\nATTENTION: You have to drop and create the postgis 'DB' %s manually!\n" % database_config['NAME'])
     else:
@@ -86,12 +87,12 @@ def reset_schema(database_config):
         for sql in sql_list:
             cursor.execute(sql)
     transaction.commit()
-            
+
 def restore_db(database_config, backup_file):
-    
+
     if not (os.path.exists(backup_file) and os.path.isfile(backup_file)):
         raise Exception("Backup file '%s' doesn't exists" % backup_file)
-    
+
     db_engine = _get_engine(database_config)
     database_config['FILE'] = backup_file
     if db_engine in ['postgresql_psycopg2', 'postgresql']:
@@ -101,22 +102,22 @@ def restore_db(database_config, backup_file):
             cmd = 'psql -U %(USER)s -d %(NAME)s < %(FILE)s  > /dev/null 2>&1'  % database_config
         else:
             cmd = 'pg_restore -U %(USER)s -d %(NAME)s %(FILE)s  > /dev/null 2>&1'  % database_config
-    elif db_engine == 'mysql':    
+    elif db_engine == 'mysql':
         cmd = 'mysql --user=%(USER)s --password=%(PASSWORD)s %(NAME)s < %(FILE)s' % database_config
     else:
         raise NotImplementedError("This database backend is not yet supported: %s" % db_engine)
 
     print(cmd)
-    call(cmd, shell=True)    
+    call(cmd, shell=True)
 
 def dump_db(database_config, outputpath='/tmp/'):
     db_engine = _get_engine(database_config)
     database_config['OUTPUT_FILE'] = os.path.join(outputpath, get_dumpdb_name())
 
-    if db_engine in ['postgresql_psycopg2', 'postgresql']:     
+    if db_engine in ['postgresql_psycopg2', 'postgresql']:
         cmd = 'pg_dump -U postgres %(NAME)s > %(OUTPUT_FILE)s' % database_config
     elif db_engine == 'mysql':
-        
+
         if database_config['HOST']:
             database_config['HOST'] = '--host %s' % database_config['HOST']
         cmd = '/usr/bin/mysqldump %(NAME)s %(HOST)s -u %(USER)s -p%(PASSWORD)s >  %(OUTPUT_FILE)s' % database_config
@@ -125,10 +126,10 @@ def dump_db(database_config, outputpath='/tmp/'):
 
     print(cmd)
     call(cmd, shell=True)
-    
+
 def get_random_text(length=10, allowed_chars='abcdefghijklmnopqrstuvwxyz'):
     return ''.join([choice(allowed_chars) for i in range(length)])
-    
+
 def foo_emails(domain_extension='foo'):
     def _get_foo_email(email):
         try:
@@ -139,28 +140,21 @@ def foo_emails(domain_extension='foo'):
             new_mail = (fragment+'@'+domain_extension+'-'+fragment+'.ch').lower()
             print('WARNING: Invalid Email found: "' + email +'" (-> '+ new_mail)
             return new_mail
-    
-    from django.conf import settings
+
     from django.db import transaction
     from django.db import connection
-    
+
     app_label = lambda app: app[app.rfind('.')+1:]
-    
+
     email_cnt = 0
     # set fake emails for all EmailFields
     if connection.vendor == 'postgresql':
         print('\nPosgtreSQL detected use fast_postgres_foo_emails')
         email_cnt = fast_postgres_foo_emails(domain_extension)
     else:
-        for app in settings.INSTALLED_APPS:
+        for app in apps.get_app_configs():
             try:
-                label = app_label(app)
-                app_config = apps.get_app_config(label)
-                if not app_config:
-                    continue
-
-                model_list = app_config.models
-                for key, model in model_list.items():
+                for model in app.get_models():
                     field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
                     if len(field_names):
                         try:
@@ -186,27 +180,19 @@ def foo_emails(domain_extension='foo'):
                 print(label)
                 print(app)
                 print(e)
-                        
+
     return email_cnt
 
 def fast_postgres_foo_emails(domain_extension):
     from django.db import connection
-    from django.conf import settings
 
     email_cnt = 0
     app_label = lambda app: app[app.rfind('.')+1:]
-    
+
     handled_columns = set()
 
-    for app in settings.INSTALLED_APPS:
-        label = app_label(app)
-        app_config = apps.get_app_config(label)
-        if not app_config:
-            continue
-
-        model_list = app_config.models
-
-        for key, model in model_list.items():
+    for app in apps.get_app_configs():
+        for model in app.get_models():
             field_column_names = [f.db_column or f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
 
             if len(field_column_names):
