@@ -75,8 +75,8 @@ def humanized_content_dict_for_model_instance(instance):
                         data_map[k] = '%s: %s' % (klass, v)
                         continue
                     
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 pass
                 
         if v == None:
