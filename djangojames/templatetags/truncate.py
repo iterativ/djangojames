@@ -23,14 +23,15 @@
 # @author: github.com/maersu
 from __future__ import unicode_literals
 from django.template import Library
-from django.utils.encoding import force_unicode
-from django.utils.functional import allow_lazy
+from django.utils.encoding import force_text 
+from django.utils.functional import keep_lazy
 from django.template.defaultfilters import stringfilter
 import re
 register = Library()
 
+@keep_lazy(str)
 def truncate_string(s, num):
-    s = force_unicode(s)
+    s = force_text(s)
     newlength = int(num)
         
     if len(s) > newlength:
@@ -45,7 +46,6 @@ def truncate_string(s, num):
         s += ' ...'
             
     return s
-truncate_chars = allow_lazy(truncate_string, unicode)
 
 @register.filter
 @stringfilter
