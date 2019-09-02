@@ -24,7 +24,7 @@ from django.utils.translation import ugettext as _
 import re
 import sys
 import unicodedata
-from django.utils.encoding import force_unicode, smart_str
+from django.utils.encoding import smart_str
    
 def humanize_bool(a_bool):
     if a_bool:
