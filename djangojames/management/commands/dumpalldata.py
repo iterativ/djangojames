@@ -19,12 +19,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
+from __future__ import unicode_literals
 from django.core.management.base import BaseCommand, CommandError
 from django.core import serializers
 
 from django.conf import settings
-from django.db.models.loading import get_app
+from django.apps import apps
 import os
 
 DJANGO_APP_PREFIX = 'django.'
@@ -63,23 +63,23 @@ class Command(BaseCommand):
             except OSError:
                 pass
             
-            print '%d to %s' % (len(objects), json_file) 
+            print('%d to %s' % (len(objects), json_file))
             f = open(json_file, 'w')
             try:
                 f.write(serializers.serialize(DUMP_FORMAT, objects, indent=DUMP_INDENT, use_natural_keys=True))
-            except Exception, e:
+            except Exception as e:
                 raise CommandError("Unable to serialize database: %s" % e)                
             f.close()
         elif os.path.exists(json_file):
-            print '-------> Remove empty file (impossible to load) %s' % json_file
+            print('-------> Remove empty file (impossible to load) %s' % json_file)
             os.remove(json_file)
             
     def _dump_internal_apps(self, app_list):
-        from django.db.models import get_models
+        from django.apps import apps
         for app in app_list:
             if not app:
                 continue
-            model_list = get_models(app)            
+            model_list = apps.get_models(app)
             app_base_path = os.path.dirname(app.__file__)
             for model in model_list:
                 if not model.__name__ in EXCLUDE_MODEL:
@@ -87,11 +87,11 @@ class Command(BaseCommand):
                     file = "%s.%s" % (model.__name__.lower(), DUMP_FORMAT)    
                     self._dump_files(path, file, model)
                 
-    def _dump_extrenal_apps(self, app_list): 
-        from django.db.models import get_models
+    def _dump_extrenal_apps(self, app_list):
+        from django.apps import apps
         for app in app_list:
             if app[1] is not None:
-                model_list = get_models(app[1])
+                model_list = apps.get_models(app[1])
                 for model in model_list:
                     if not model.__name__ in EXCLUDE_MODEL:
                         path = os.path.join(EXTERNAL_FIXTURES_DIR).replace('/models', '')
@@ -108,15 +108,15 @@ class Command(BaseCommand):
         for app in settings.INSTALLED_APPS:
             if app not in EXCLUDE_APPS:
                 if app.startswith('%s.' % projectname):
-                    internal_app_list.append(get_app(app_label(app), True))
+                    internal_app_list.append(apps.get_app(app_label(app), True))
                 else:
-                    extrenal_app_list.append((app, get_app(app_label(app), True)))
+                    extrenal_app_list.append((app, apps.get_app(app_label(app), True)))
         try:
             serializers.get_serializer(DUMP_FORMAT)
         except KeyError:
             raise CommandError("Unknown serialization format: %s" % DUMP_FORMAT)
         
-        print '\ndump internal data:'
+        print('\ndump internal data:')
         self._dump_internal_apps(internal_app_list)
-        print '\ndump external data:'
+        print('\ndump external data:')
         self._dump_extrenal_apps(extrenal_app_list)

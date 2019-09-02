@@ -41,4 +41,4 @@ class Command(NoArgsCommand):
             domain_extension = 'foo'
         
         email_cnt = foo_emails(domain_extension)
-        print 'Foo %d emails' % email_cnt
+        print('Foo %d emails' % email_cnt)

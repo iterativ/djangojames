@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 from collections import OrderedDict
+from __future__ import unicode_literals
 
 from django.template.defaultfilters import slugify
 from django.http import HttpResponse
@@ -30,6 +31,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 import datetime
 from django.conf import settings
+
 
 def humanized_content_dict_for_model_instance(instance):
     """Returns a dictionary for the given Django model instance with normalized data."""
@@ -42,28 +44,29 @@ def humanized_content_dict_for_model_instance(instance):
         k = f.name.replace('_', ' ').title()
         v = getattr(instance, f.name)
         if hasattr(instance, 'get_%s_display' % f.name):
-            m = getattr(instance, 'get_%s_display' % f.name)                
+            m = getattr(instance, 'get_%s_display' % f.name)
             v = m()
-        
+
         if type(f) == ForeignKey:
             try:
-                to = f.related.parent_model            
+                to = f.related.parent_model
                 if to == User:
                     if v is not None:
                         name = v.get_full_name()
-                        email = unicode(v.email)
+                        email = str(v.email)
                     else:
                         name = ''
                         email = ''
-                    
-                    data_map[k] = unicode(name)
-                    data_map['%s Email' % k] = unicode(email)
+
+                    data_map[k] = str(name)
+                    data_map['%s Email' % k] = str(email)
                     continue
-                
+
                 elif to == ContentType and f.name == 'content_type':
                     if hasattr(instance, 'object_id'):
                         try:
-                            data_map['Content Object'] = '%s: %s' % (v, v.get_object_for_this_type(id=getattr(instance, 'object_id')))
+                            data_map['Content Object'] = '%s: %s' % (
+                            v, v.get_object_for_this_type(id=getattr(instance, 'object_id')))
                         except:
                             data_map['Content Object'] = ''
                             pass
@@ -74,48 +77,49 @@ def humanized_content_dict_for_model_instance(instance):
                         klass = ContentType.objects.get_for_model(v)
                         data_map[k] = '%s: %s' % (klass, v)
                         continue
-                    
+
             except Exception as e:
                 print(e)
                 pass
-                
+
         if v == None:
             v = ''
         elif type(v) == datetime.date:
-            v = v.strftime(smart_str(settings.DATE_FORMAT))                   
+            v = v.strftime(smart_str(settings.DATE_FORMAT))
         elif type(v) == datetime.datetime:
             v = v.strftime(smart_str(settings.DATETIME_FORMAT))
- 
+
         data_map[k] = v
 
         if suppress_object_id and data_map.has_key('Object Id'):
             del data_map['Object Id']
-    
+
     for f in opts.many_to_many:
         k = f.name.replace('_', ' ').title()
         vals = []
         for val in f.value_from_object(instance):
             klass = ContentType.objects.get_for_model(val)
-            vals.append('%s: %s' % (klass, unicode(val)))
+            vals.append('%s: %s' % (klass, str(val)))
         data_map[k] = ','.join(vals)
-    
+
     return data_map
+
 
 def queryset_to_csv_response(filename, queryset):
     if len(queryset) > 0:
         response = HttpResponse(mimetype='text/csv')
         file_name = slugify(filename)
-        response['Content-Disposition'] = 'attachment; filename=%s-export.csv' % file_name   
+        response['Content-Disposition'] = 'attachment; filename=%s-export.csv' % file_name
         writer = csv.writer(response)
 
         i = 0
         for inst in queryset:
             i += 1
-            dict =  humanized_content_dict_for_model_instance(inst)
+            dict = humanized_content_dict_for_model_instance(inst)
             if i == 1:
                 writer.writerow([smart_str(k) for k in dict.keys()])
             writer.writerow([smart_str(c) for c in dict.values()])
-            
+
         return response
     else:
         return None

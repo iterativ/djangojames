@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
+from __future__ import unicode_literals
 from django import forms
 from django.forms.utils import ValidationError, ErrorList
 from django.template.loader import render_to_string
@@ -27,7 +27,7 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from widgets import Html5DateInput, Html5TimeInput, Html5DateTimeInput
+from .widgets import Html5DateInput, Html5TimeInput, Html5DateTimeInput
 from django.forms.widgets import Input
 
 class MetaBaseForm(object):
@@ -47,7 +47,7 @@ class MetaBaseForm(object):
 
         return False
 
-    def check_unique(self, modelklass, field, exclude_value='', error=_(u'Existiert bereits.'), ignore_case=False):
+    def check_unique(self, modelklass, field, exclude_value='', error=_('Existiert bereits.'), ignore_case=False):
         
         if field in self.cleaned_data and self.cleaned_data[field]:
 
@@ -67,26 +67,26 @@ class MetaBaseForm(object):
                 self._errors[field] = ValidationError(error).messages
                 del self.cleaned_data[field]
 
-    def required_all(self, fieldlist, error=_(u'Dieses Feld ist zwingend erforderlich.')):
+    def required_all(self, fieldlist, error=_('Dieses Feld ist zwingend erforderlich.')):
         for f in fieldlist:
             if f in self.cleaned_data and not self.cleaned_data[f]:
                 self._errors[f] = ValidationError(error).messages
                 del self.cleaned_data[f]
 
-    def invalidate(self, fieldlist, error=_(u'Dieses Feld ist zwingend erforderlich.')):
+    def invalidate(self, fieldlist, error=_('Dieses Feld ist zwingend erforderlich.')):
         for f in fieldlist:
             if f in self.cleaned_data:
                 self._errors[f] = ValidationError(error).messages
                 del self.cleaned_data[f]
 
-    def required_all_or_none(self, fieldlist, error=_(u'Dieses Feld ist zwingend erforderlich.')):
+    def required_all_or_none(self, fieldlist, error=_('Dieses Feld ist zwingend erforderlich.')):
         not_found=[f for f in fieldlist if f in self.cleaned_data and not self.cleaned_data[f]]
-        if len(not_found) > 0 and len(not_found) <> len(fieldlist):                                
+        if len(not_found) > 0 and len(not_found) != len(fieldlist):
             for nf in not_found:
                 self._errors[nf] = ValidationError(error).messages
                 del self.cleaned_data[nf]
 
-    def required_at_least_one_text(self, fieldlist, error=_(u'Bitte mindestens einen Text eingeben')):
+    def required_at_least_one_text(self, fieldlist, error=_('Bitte mindestens einen Text eingeben')):
         if all([f in self.cleaned_data for f in fieldlist]):
             if all([len(strip_tags(self.cleaned_data.get(f, ''))) == 0 for f in fieldlist]):
                 for f in fieldlist:
@@ -96,7 +96,7 @@ class MetaBaseForm(object):
     def asterix_required(self):
         for index, field in enumerate(self):
             if field.field.required and field.field.label[-1] != '*':
-                field.field.label = u'%s *' % field.field.label
+                field.field.label = '%s *' % field.field.label
                 
                 if field.field.widget.attrs.has_key('label'):
                     field.field.widget.attrs['label'] = field.field.label
@@ -106,7 +106,7 @@ class MetaBaseForm(object):
         self.data = self.data.copy()
         
         for index, field in enumerate(self):
-            if self.data.get(field.name, '') == u'%s' % field.label:
+            if self.data.get(field.name, '') == '%s' % field.label:
                 del self.data[field.name]
 
     def disable_form(self):
