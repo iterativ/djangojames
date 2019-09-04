@@ -20,14 +20,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 from __future__ import unicode_literals
-from django.apps import apps
-from django.core.management import call_command
 
 import os
-from subprocess import call, check_output
-from random import choice
-from django.db.utils import IntegrityError
+from django.apps import apps
 from django.db.models import EmailField
+from django.db.utils import IntegrityError
+from random import choice
+from subprocess import call, check_output
+
 
 def _get_engine(database_config):
     return database_config['ENGINE'].split('.')[-1]
@@ -39,7 +39,7 @@ def get_dumpdb_name():
 def create_db_if_not_exists(database_config):
     db_engine = _get_engine(database_config)
     if db_engine in ['postgresql_psycopg2', 'postgresql']:
-        result = check_output(["psql", "-ltA", "-R=,"])
+        result = str(check_output(["psql", "-ltA", "-R=,"]))
         if not database_config['NAME'] in [line.split('|')[0] for line in result.split(',')]:
             call(['createdb', database_config['NAME']])
     elif db_engine == 'sqlite3':
@@ -141,7 +141,6 @@ def foo_emails(domain_extension='foo'):
             print('WARNING: Invalid Email found: "' + email +'" (-> '+ new_mail)
             return new_mail
 
-    from django.conf import settings
     from django.db import transaction
     from django.db import connection
 
@@ -153,15 +152,9 @@ def foo_emails(domain_extension='foo'):
         print('\nPosgtreSQL detected use fast_postgres_foo_emails')
         email_cnt = fast_postgres_foo_emails(domain_extension)
     else:
-        for app in settings.INSTALLED_APPS:
+        for app in apps.get_app_configs():
             try:
-                label = app_label(app)
-                app_config = apps.get_app_config(label)
-                if not app_config:
-                    continue
-
-                model_list = app_config.models
-                for key, model in model_list.items():
+                for model in app.get_models():
                     field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
                     if len(field_names):
                         try:
@@ -192,22 +185,14 @@ def foo_emails(domain_extension='foo'):
 
 def fast_postgres_foo_emails(domain_extension):
     from django.db import connection
-    from django.conf import settings
 
     email_cnt = 0
     app_label = lambda app: app[app.rfind('.')+1:]
 
     handled_columns = set()
 
-    for app in settings.INSTALLED_APPS:
-        label = app_label(app)
-        app_config = apps.get_app_config(label)
-        if not app_config:
-            continue
-
-        model_list = app_config.models
-
-        for key, model in model_list.items():
+    for app in apps.get_app_configs():
+        for model in app.get_models():
             field_column_names = [f.db_column or f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
 
             if len(field_column_names):

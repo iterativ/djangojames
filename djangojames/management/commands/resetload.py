@@ -92,7 +92,7 @@ class JsonFixtures(object):
                         if (name.endswith(FIXTUERS_EXT)) and (name.find('initial_data') == -1):
                             self.__all_fixtures.append(os.path.join(dirname, name))
 
-            os.path.walk(self._root_dir, _find, None)
+            os.walk(self._root_dir, _find, None)
 
         return self.__all_fixtures
 
@@ -170,3 +170,4 @@ class Command(BaseCommand):
 
         if rebuild_haystack:
             call_command('rebuild_index', interactive=False)
+

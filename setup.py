@@ -1,7 +1,6 @@
-from distutils.core import setup
 import os
-from distutils.command.install_data import install_data
 from distutils.command.install import INSTALL_SCHEMES
+from distutils.core import setup
 
 packages = []
 data_files = []
@@ -38,7 +37,7 @@ for scheme in INSTALL_SCHEMES.values():
 
 setup(
     name='djangojames',
-    version='0.6.0',
+    version='0.10.1',
     description="Helpers and tools for django",
     author='Marcel Eyer',
     author_email='me@maersu.ch',
@@ -48,5 +47,5 @@ setup(
     zip_safe=False,
     install_requires=[
         'python-googleanalytics==1.0.2',
-    ],    
+    ],
 )
