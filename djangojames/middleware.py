@@ -11,6 +11,8 @@ import collections
 from contextlib import contextmanager
 
 from django.contrib.auth import get_user_model
+from django.utils.deprecation import MiddlewareMixin
+
 
 try:
     from threading import local
@@ -27,7 +29,7 @@ def get_user():
     if request:
         return getattr(request, "user", None)
 
-class ThreadLocalMiddleware(object):
+class ThreadLocalMiddleware(MiddlewareMixin):
     # clean up _thread_locals after the request: https://stackoverflow.com/a/3227515/669561
     def process_request(self, request):
         _thread_locals.request = request
