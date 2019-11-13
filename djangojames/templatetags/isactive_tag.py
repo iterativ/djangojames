@@ -25,7 +25,7 @@
 
 from django import template
 import re
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 register = template.Library()
 
 class IsActiveNode(template.Node):

@@ -22,7 +22,6 @@
 # Created on Sept 28, 2012
 # @author: github.com/maersu
 
-from django.core.management.base import NoArgsCommand
 from optparse import make_option
 from django.contrib.staticfiles.management.commands.runserver import Command as BaseCommand
 import socket

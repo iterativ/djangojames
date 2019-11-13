@@ -32,7 +32,7 @@ from django.db.models.aggregates import Count
 from googleanalytics import Connection
 from django.conf import settings
 from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import logging
 from django.template.defaultfilters import slugify
 
