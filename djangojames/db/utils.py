@@ -155,7 +155,7 @@ def foo_emails(domain_extension='foo'):
         for app in apps.get_app_configs():
             try:
                 for model in app.get_models():
-                    field_names = [f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
+                    field_names = [f.attname for f in model._meta.get_fields() if f.__class__ is EmailField]
                     if len(field_names):
                         try:
                             for model_instance in model.objects.all():
@@ -193,7 +193,7 @@ def fast_postgres_foo_emails(domain_extension):
 
     for app in apps.get_app_configs():
         for model in app.get_models():
-            field_column_names = [f.db_column or f.attname for f, m in model._meta.get_fields_with_model() if f.__class__ is EmailField]
+            field_column_names = [f.db_column or f.attname for f in model._meta.get_fields() if f.__class__ is EmailField]
 
             if len(field_column_names):
                 db_table_name = model._meta.db_table
