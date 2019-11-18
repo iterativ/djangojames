@@ -24,7 +24,6 @@ from django.core.management.base import BaseCommand
 
 import os
 import time
-from django.core.management.base import NoArgsCommand
 from optparse import make_option
 
 from djangojames.db.utils import create_db_if_not_exists
