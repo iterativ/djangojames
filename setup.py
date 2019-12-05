@@ -37,7 +37,7 @@ for scheme in INSTALL_SCHEMES.values():
 
 setup(
     name='djangojames',
-    version='0.11.3',
+    version='2.2',
     description="Helpers and tools for django",
     author='Marcel Eyer',
     author_email='me@maersu.ch',
